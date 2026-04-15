@@ -1,0 +1,16 @@
+{
+  "name": "classic-models-reporting",
+  "version": "1.0.0",
+  "description": "Classic Models ERP Dashboard with MySQL Database",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js"
+  },
+  "keywords": ["nodejs", "mysql", "reporting", "dashboard"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "mysql2": "^3.6.0"
+  }
+}
