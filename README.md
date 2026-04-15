@@ -69,7 +69,12 @@ A Node.js-based ERP dashboard for viewing and analyzing the Classic Models datab
    });
    ```
 
-4. **Ensure the `classicmodels` MySQL database exists** with all required tables
+4. **(Optional) Customize server port** in `config.js`:
+   ```javascript
+   PORT: 3001  // Change to any available port
+   ```
+
+5. **Ensure the `classicmodels` MySQL database exists** with all required tables
 
 ## Usage
 
@@ -125,15 +130,74 @@ Lookup tables provide detailed reference data:
 ## Project Structure
 
 ```
-├── app.js                 # Main server file with routing
-├── database.js            # MySQL connection pool
-├── handlers.js            # API route handlers and query functions
-├── views.js               # HTML templates
+├── app.js                 # Main entry point - Server initialization
+├── routes.js              # Route handler class - Manages all HTTP routes
+├── middleware.js          # Middleware functions - CORS, error handling
+├── config.js              # Configuration constants - PORT, content types
+├── database.js            # MySQL connection pool - Database operations
+├── handlers.js            # API handlers - Query functions for all endpoints
+├── views.js               # HTML templates - Page markup
 ├── package.json           # Project dependencies
 ├── README.md              # This file
 └── static/
-    └── app.js             # Client-side JavaScript for UI interactions
+    └── app.js             # Client-side JavaScript - UI interactions
 ```
+
+## Architecture
+
+The application is organized with **separation of concerns** for better maintainability:
+
+- **app.js**: Entry point that initializes the server
+- **routes.js**: Centralized route handling with a Router class
+- **middleware.js**: Reusable middleware for cross-cutting concerns (CORS, error handling)
+- **config.js**: Centralized configuration for ports, content types, and HTTP codes
+- **database.js**: Database connection and query execution
+- **handlers.js**: Business logic for data retrieval and aggregation
+- **views.js**: HTML/UI templates
+- **static/app.js**: Client-side UI logic and interactivity
+
+## Development Guide
+
+### Adding New Routes
+Add new route handlers in `routes.js` using the Router class:
+```javascript
+// In routes.js, add your route logic to the handle() method
+if (pathname === '/api/your-endpoint' && req.method === 'GET') {
+    const data = await handlers.yourFunction(query);
+    return this.sendResponse(res, data, 200);
+}
+```
+
+### Adding New Database Queries
+Create new query functions in `handlers.js`:
+```javascript
+async function yourQueryFunction(filters = {}) {
+    let sql = 'SELECT * FROM your_table WHERE 1=1';
+    const params = [];
+    // Add your query logic
+    return await db.query(sql, params);
+}
+```
+
+### Customizing Configuration
+Modify values in `config.js`:
+```javascript
+module.exports = {
+    PORT: 3001,              // Server port
+    CORS_ORIGIN: '*',        // CORS policy
+    // Add your custom configuration here
+};
+```
+
+## Benefits of Modular Architecture
+
+- **Scalability**: Easy to add new routes, handlers, and features
+- **Testability**: Each module can be tested independently
+- **Maintainability**: Clear separation of concerns makes code easier to understand and modify
+- **Reusability**: Middleware and utilities can be reused across routes
+- **Configuration Management**: Centralized configuration for easy adjustments
+- **Error Handling**: Consistent error handling across all routes
+- **Code Organization**: Logical structure makes the codebase easier to navigate
 
 ## API Endpoints
 
@@ -208,7 +272,15 @@ The application uses the **ClassicModels** sample database which includes:
 - Check that all required tables exist
 
 ### Port Already in Use
-- Change the `PORT` variable in `app.js` from 3001 to any available port
+- Change the `PORT` variable in `config.js` from 3001 to any available port
+
+### Route Issues
+- Check that routes are properly defined in `routes.js`
+- Verify API endpoint paths in `static/app.js` match the backend routes
+
+### Missing Endpoints
+- All API handlers must be exported in `handlers.js`
+- Routes must be added to the Router class in `routes.js`
 
 ## License
 
