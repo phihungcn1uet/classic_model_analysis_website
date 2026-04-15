@@ -541,6 +541,68 @@ function renderLookupTable(data, container) {
     container.innerHTML = html;
 }
 
+// Chatbot Functions
+function toggleChatbot() {
+    const widget = document.getElementById('chatbot-widget');
+    const button = document.getElementById('chatbot-button');
+    widget.classList.toggle('hidden');
+    button.classList.toggle('hidden');
+    
+    // Focus on input if widget is shown
+    if (!widget.classList.contains('hidden')) {
+        document.getElementById('chatbot-input').focus();
+    }
+}
+
+async function sendChatMessage() {
+    const input = document.getElementById('chatbot-input');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message to chat
+    addChatMessage(message, 'user');
+    input.value = '';
+    
+    try {
+        const response = await fetch('/api/chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+        
+        const data = await response.json();
+        addChatMessage(data.message, 'bot');
+    } catch (error) {
+        console.error('Chatbot error:', error);
+        addChatMessage('Sorry, I encountered an error. Please try again.', 'bot');
+    }
+}
+
+function addChatMessage(messageText, sender) {
+    const messagesContainer = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = sender === 'user' ? 'flex justify-end' : 'flex justify-start';
+    
+    const messageBubble = document.createElement('div');
+    messageBubble.className = sender === 'user' 
+        ? 'bg-blue-600 text-white p-3 rounded-lg max-w-xs text-sm'
+        : 'bg-gray-200 text-gray-900 p-3 rounded-lg max-w-xs text-sm';
+    messageBubble.textContent = messageText;
+    
+    messageDiv.appendChild(messageBubble);
+    messagesContainer.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function handleChatKeypress(event) {
+    if (event.key === 'Enter') {
+        sendChatMessage();
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     showView('customers');

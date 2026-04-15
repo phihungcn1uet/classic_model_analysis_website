@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const handlers = require('./handlers');
+const chatbot = require('./chatbot');
 const views = require('./views');
 const { CONTENT_TYPES, HTTP_CODES } = require('./config');
 
@@ -32,11 +33,32 @@ class Router {
 
         // Route to appropriate handler
         if (pathname.startsWith('/api/')) {
-            return await this.handleAPI(res, pathname, query, method);
+            // Get request body for POST requests
+            let body = '';
+            if (method === 'POST') {
+                body = await this.getRequestBody(req);
+            }
+            return await this.handleAPI(res, pathname, query, method, body);
         }
 
         // 404 - Not found
         return this.sendNotFound(res);
+    }
+
+    /**
+     * Get request body from stream
+     */
+    getRequestBody(req) {
+        return new Promise((resolve, reject) => {
+            let body = '';
+            req.on('data', chunk => {
+                body += chunk.toString();
+            });
+            req.on('end', () => {
+                resolve(body);
+            });
+            req.on('error', reject);
+        });
     }
 
     /**
@@ -64,7 +86,21 @@ class Router {
     /**
      * Handle API requests
      */
-    async handleAPI(res, pathname, query, method) {
+    async handleAPI(res, pathname, query, method, body = '') {
+        if (method === 'POST') {
+            // Chatbot endpoint
+            if (pathname === '/api/chatbot') {
+                try {
+                    const data = JSON.parse(body);
+                    const response = await chatbot.handleChatMessage(data.message);
+                    return this.sendJSON(res, response);
+                } catch (error) {
+                    return this.sendError(res, 'Invalid request format');
+                }
+            }
+            return this.sendNotFound(res);
+        }
+
         if (method !== 'GET') {
             return this.sendNotFound(res);
         }
